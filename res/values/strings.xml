@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">HandleNameChanger</string>
+    <string name="action_settings">Settings</string>
+    <string name="dummy"> </string>
+    <string name="open_handlename_settings_dialog">Settings</string>
+	<string name="undefined_handle_name">Undefined</string>
+	<string name="apptype_gree">GREE</string>
+	<string name="application_type_name">Application Name</string>
+	<string name="login_name">Login Name</string>
+	<string name="gree_login_name">Mail Address</string>
+	<string name="password">Password</string>	
+	<string name="handle_name">Handle Name</string>
+	<string name="ok">OK</string>	
+	<string name="cancel">Cancel</string>
+	<string name="tying_login">Tring login.</string>
+	<string name="logined">logined.</string>
+	<string name="changing">Changing Handle Name.</string>
+	<string name="dori_request_changing">Changing Doriland Request.</string>
+	<string name="logouted">Logouted.</string>
+	<string name="change_handle_name_success">Changing handle name was succeeded.</string>	
+	<string name="change_handle_name_maybe_failed">Changing handle name maybe failed.</string>	
+	<string name="sample_handle_name_0">Foo【OK】</string>	
+	<string name="sample_handle_name_1">Foo【MAYBE】</string>	
+	<string name="sample_handle_name_2">Foo【NG】</string>	
+	<string name="gree_account_usage">Please input mailaddress and password(optional) for GREE. </string>
+	<string name="doriland_request">Doriland Request</string>
+	<string name="copy_from_other_settings">Copy From Other Setting</string>
+	<string name="doriland_request_on">Doriland(request ON)</string>
+	<string name="doriland_request_off">Doriland(request OFF)</string>
+	<string name="webview_tag">webview_tag</string>
+	<string name="do_not_copy">Do not copy</string>
+	<string name="login_usage">Please input password and tap login button.</string>
+	<string-array name="dori_req_entries">  
+	    <item>Not Change/Not play doriland</item>  
+		<item>Change to Request ON</item>  
+   		<item>Change to Request OFF</item>  
+	</string-array> 
+</resources>

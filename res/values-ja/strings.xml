@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">ハンドルネーム一発変更</string>
+    <string name="action_settings">設定</string>
+    <string name="dummy"> </string>
+    <string name="open_handlename_settings_dialog">設定</string>
+	<string name="undefined_handle_name">未設定</string>
+	<string name="apptype_gree">GREE</string>
+	<string name="application_type_name">ソーシャルゲーム名</string>
+	<string name="login_name">ログイン名</string>
+	<string name="gree_login_name">メールアドレス</string>
+	<string name="password">パスワード</string>	
+	<string name="handle_name">ハンドルネーム</string>
+	<string name="ok">OK</string>	
+	<string name="cancel">キャンセル</string>
+	<string name="tying_login">ログインしています</string>
+	<string name="logined">ログインしました</string>
+	<string name="changing">ハンドルネームを変更中です</string>
+	<string name="dori_request_changing">ドリランドのリクエスト設定を変更中です</string>
+	<string name="logouted">ログアウトしました</string>
+	<string name="change_handle_name_success">ハンドルネームの変更は成功しました</string>	
+	<string name="change_handle_name_maybe_failed">ハンドルネームの変更に失敗した可能性があります</string>
+	<string name="sample_handle_name_0">ハンネ【要請○】</string>	
+	<string name="sample_handle_name_1">ハンネ【要請△】</string>	
+	<string name="sample_handle_name_2">ハンネ【要請×】</string>	
+	<string name="gree_account_usage">GREEのログインアカウントを入力してください。パスワードの入力は任意です。</string>
+	<string name="doriland_request">ドリランドリクエスト</string>
+	<string name="copy_from_other_settings">他の設定値をコピー</string>
+	<string name="doriland_request_on">ドリ(リクON)</string>
+	<string name="doriland_request_off">ドリ(リクOFF)</string>
+	<string name="webview_tag">webview_tag</string>
+	<string name="do_not_copy">コピーしない</string>
+	<string name="login_usage">パスワード入力後、ログインボタンをタップしてください。自動的にハンドルネームを変更します。</string>
+	<string-array name="dori_req_entries">  
+	    <item>変更しない/ドリランドは始めていない</item>  
+		<item>リクエストONにする</item>  
+   		<item>リクエストOFFにする</item>  
+	</string-array> 
+</resources>
