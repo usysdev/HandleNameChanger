@@ -379,8 +379,9 @@ public class BrowserActivity extends Activity {
 			}
 		});
 		
+		// ç≈èâÇ…äJÇ≠URL
 		if (appType == HandleNameBean.APPTYPE_GREE) {
-			webView.loadUrl("http://gree.jp/");
+			webView.loadUrl("http://t.gree.jp/?action=login&from_signuptop=login");
 		}
 	}
 }
