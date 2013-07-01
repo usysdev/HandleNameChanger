@@ -37,4 +37,5 @@
 		<item>Change to Request ON</item>  
    		<item>Change to Request OFF</item>  
 	</string-array> 
+    <string name="co_operation">Co-op</string>
 </resources>

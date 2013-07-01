@@ -8,5 +8,9 @@
     <style name="AppBaseTheme" parent="android:Theme.Holo.Light">
         <!-- API 14 theme customizations can go here. -->
     </style>
+    <style name="CustomAppBaseTheme" parent="android:Theme.Holo.Light">
+        <!-- API 14 theme customizations can go here. -->
+        <item name="android:windowActionBar">false</item>
+    </style>
 
 </resources>

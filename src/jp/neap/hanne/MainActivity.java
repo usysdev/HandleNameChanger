@@ -5,17 +5,23 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.Window;
 import android.webkit.CookieManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -24,6 +30,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -76,8 +83,11 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_CUSTOM_TITLE);
 		setContentView(R.layout.activity_main);
-
+		// http://s7643.socode.us/question/5081300c4f1eba38a4263fd0
+		getWindow().setFeatureInt(Window.FEATURE_CUSTOM_TITLE, R.layout.custom_title_bar);
+		
 		final List<HandleNameBean> handleNameBeanList;
 		{
 			final DBHelper dbHelper = new DBHelper(getApplicationContext(), DBHelper.DB_FILENAME, null, DBHelper.DB_VERSION);
@@ -219,6 +229,7 @@ public class MainActivity extends Activity {
 				    				db.close();
 				    			}
 					    		final ArrayAdapter<SpinnerHandleNameBean> adapterItemList = new ArrayAdapter<SpinnerHandleNameBean>(buttonView.getContext(), android.R.layout.simple_spinner_item);
+					    		adapterItemList.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 					    		adapterItemList.add(new SpinnerHandleNameBean(-1, 0, "", "", "", 0, getApplicationContext().getString(R.string.do_not_copy)));
 					    		for (int index = 0 ; index < handleNameBeanList.size() ; index++) {
 					    			final HandleNameBean bean = handleNameBeanList.get(index);
@@ -387,6 +398,59 @@ public class MainActivity extends Activity {
 					}
 				});
 			}
+		}
+
+		// ゲームタイマーの起動連携
+		{
+			final ImageView btnGameTimer = (ImageView)findViewById(R.id.title_gametimer);
+			btnGameTimer.setOnClickListener(new View.OnClickListener() {
+				@Override
+				public void onClick(View view) {
+					boolean bGameTimerInstalled = false;
+					// ゲームタイマーがインストールされているか調べる
+					{
+						final PackageManager packageManager = view.getContext().getPackageManager();
+						try {
+							packageManager.getApplicationInfo("jp.neap.gametimer", 0);
+							bGameTimerInstalled = true;
+						} catch (NameNotFoundException __ignore__) {}
+					}
+					if (bGameTimerInstalled) {
+						// ゲームタイマーを起動する
+						Intent intent = new Intent();
+						intent.setClassName("jp.neap.gametimer", "jp.neap.gametimer.GameTimerListActivity");						
+						startActivity(intent);
+					}
+					else {
+						// ゲームタイマーのダウンロードページ(Google Play)に遷移する
+						Intent intent = new Intent();
+						intent.setAction(Intent.ACTION_VIEW);
+						intent.setData(Uri.parse("market://details?id=jp.neap.gametimer"));
+						startActivity(intent);
+					}
+				}
+			});
+			btnGameTimer.setOnTouchListener(new View.OnTouchListener() {
+				@Override
+				public boolean onTouch(View view, MotionEvent event) {
+					switch (event.getAction()) {
+					case MotionEvent.ACTION_DOWN:
+						{
+							final ImageView ivGameTimer = (ImageView)view.findViewById(R.id.title_gametimer);
+							ivGameTimer.setImageResource(R.drawable.icon_gametimer_mo);
+						}
+						break;
+					case MotionEvent.ACTION_MOVE:
+						break;
+					default:
+					{
+						final ImageView ivGameTimer = (ImageView)view.findViewById(R.id.title_gametimer);
+						ivGameTimer.setImageResource(R.drawable.icon_gametimer);
+					}
+					}
+					return false;
+				}
+			});
 		}
 	}
 }

@@ -37,4 +37,5 @@
 		<item>リクエストONにする</item>  
    		<item>リクエストOFFにする</item>  
 	</string-array> 
+    <string name="co_operation">連携</string>
 </resources>
