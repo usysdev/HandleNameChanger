@@ -17,6 +17,7 @@
 	<string name="tying_login">Tring login.</string>
 	<string name="logined">logined.</string>
 	<string name="changing">Changing Nick Name.</string>
+	<string name="changed">Nick Name Changed.</string>
 	<string name="dori_request_changing">Changing Doriland Request.</string>
 	<string name="logouted">Logouted.</string>
 	<string name="change_handle_name_success">Changing nick name was succeeded.</string>	

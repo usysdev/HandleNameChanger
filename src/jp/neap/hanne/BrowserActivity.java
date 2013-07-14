@@ -20,22 +20,37 @@ import android.webkit.JsResult;
  */
 public class BrowserActivity extends Activity {
 
-	private static final int COMMON_START = 0;
+	private static final int START = 0;
 
 	private static final int GREE_LOGIN = 1;
 
-	private static final int GREE_HOMETOP = 2;
+	private static final int GREE_TOP_SP = 2;
 
-	private static final int GREE_SETTINGS_MENU = 3;
+	private static final int GREE_TOP_PC = 3;
 
-	private static final int GREE_SETTINGS_PROFILE = 4;
+	private static final int GREE_CHANGE_PROFILE_BEFORE = 4;
 
-	private static final int GREE_SHOW_PROFILE = 5;
+	private static final int GREE_CHANGE_PROFILE_AFTER = 5;
 
 	private static final int GREE_DORILAND_APP_SETTING = 6;
 
 	private static final int GREE_LOGOUT = 7;
 
+	private String escapeForJavaScript(String value) {
+		final StringBuffer buffer = new StringBuffer();
+		for (int index = 0 ; index < value.length() ; index++) {
+			final char c = value.charAt(index);
+			switch (c) {
+			case '"':
+			case '\\':
+				buffer.append('\\');
+				break;
+			}
+			buffer.append(c);
+		}
+		return buffer.toString();
+	}
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -76,7 +91,7 @@ public class BrowserActivity extends Activity {
 		// WebView内で遷移させる。
 		webView.setWebViewClient(new WebViewClient() {
 
-			int actionState = COMMON_START;
+			int actionState = START;
 
 			/* (non-Javadoc)
 			 * @see android.webkit.WebViewClient#onPageStarted(android.webkit.WebView, java.lang.String, android.graphics.Bitmap)
@@ -93,9 +108,6 @@ public class BrowserActivity extends Activity {
 
 			@Override
 			public void onPageFinished(WebView view, String url) {
-				if (Logger.isDebugEnabled()) {
-					Logger.debug("onPageFinished:" + url);
-				}
 				// TODO Auto-generated method stub
 				super.onPageFinished(view, url);
 
@@ -106,7 +118,7 @@ public class BrowserActivity extends Activity {
 
 			private void greeSmartPhone(WebView view, String url, boolean bOnStart) {
 				if ("http://t.gree.jp/?action=login&ignore_sso=1&backto=".equals(url)) {
-					if (actionState == COMMON_START) {
+					if (actionState == START) {
 						if (bOnStart) {
 							setTitle(getString(R.string.tying_login));
 						}
@@ -150,18 +162,18 @@ public class BrowserActivity extends Activity {
 							finish();
 						}
 					}
-				} else if ("http://t.gree.jp/?action=home_top".equals(url)) {
+				} else if ("http://games.gree.net/".equals(url)) {
 					if (actionState == GREE_LOGIN) {
 						if (bOnStart) {
 							setTitle(getString(R.string.logined));
 						}
 						else {
-							actionState = GREE_HOMETOP;
+							actionState = GREE_TOP_SP;
 							if (Logger.isDebugEnabled()) {
-								Logger.debug("ホームトップ画面");
+								Logger.debug("トップ画面(SP)");
 							}
 							setTitle(getString(R.string.logined));
-							view.loadUrl("http://t.gree.jp/#from_tsns=footer_config&tab=config_list");
+							view.loadUrl("http://gree.jp/?mode=preference&act=set&fepref=pc");
 						}
 					}
 					else {
@@ -170,21 +182,48 @@ public class BrowserActivity extends Activity {
 							finish();
 						}
 					}
-				} else if ("http://t.gree.jp/#from_tsns=footer_config&tab=config_list".equals(url)) {
-					if (actionState == GREE_HOMETOP) {
+				} else if ("http://gree.jp/".equals(url)) {
+					if (actionState == GREE_TOP_SP) {
+						if (bOnStart) {
+							setTitle(getString(R.string.logined));
+						}
+						else {
+							actionState = GREE_TOP_PC;
+							if (Logger.isDebugEnabled()) {
+								Logger.debug("トップ画面(PC)");
+							}
+							setTitle(getString(R.string.logined));
+							view.loadUrl("http://gree.jp/?mode=home&act=config_profile_form");
+						}
+					}
+					else {
+						if (!bOnStart) {
+							Toast.makeText(getApplicationContext(), R.string.change_handle_name_maybe_failed, Toast.LENGTH_SHORT).show();
+							finish();
+						}
+					}
+				} else if ("http://gree.jp/?mode=home&act=config_profile_form".equals(url)) {
+					if (actionState == GREE_TOP_PC) {
 						if (bOnStart) {
 							setTitle(getString(R.string.changing));
 						}
 						else {
-							actionState = GREE_SETTINGS_MENU;
+							actionState = GREE_CHANGE_PROFILE_BEFORE;
 							if (Logger.isDebugEnabled()) {
-								Logger.debug("設定メニュー画面");
+								Logger.debug("プロフィール画面(変更前)");
 							}
 							setTitle(getString(R.string.changing));
+//							String script =
+//								"javascript:{" +
+//									"document.getElementById('nick_name').value = '" + handleName + "';" +
+//									"preview();" +
+//									"document.forms.config.onsubmit();" +
+//								"};";
 							String script =
-								"javascript:{" +
-									"Gree.Controller.open('config_profile');" +
-								"};";
+							"javascript:{" +
+								"document.getElementById('nick_name').value = '" + escapeForJavaScript(handleName) + "';" +
+								"document.forms.profile.submit();" +
+							"};";
 							view.loadUrl(script);
 						}
 					}
@@ -194,41 +233,15 @@ public class BrowserActivity extends Activity {
 							finish();
 						}
 					}
-				} else if ("http://t.gree.jp/#action=home_config_profile_form&group=config&tab=config_profile".equals(url)) {
-					if (actionState == GREE_SETTINGS_MENU) {
+				} else if ("https://secure.gree.jp/?mode=home&act=config_profile_form".equals(url)) {
+					if (actionState == GREE_CHANGE_PROFILE_BEFORE) {
 						if (bOnStart) {
-							setTitle(getString(R.string.changing));
+							setTitle(getString(R.string.changed));
 						}
 						else {
-							actionState = GREE_SETTINGS_PROFILE;
+							actionState = GREE_CHANGE_PROFILE_AFTER;
 							if (Logger.isDebugEnabled()) {
-								Logger.debug("プロフィール設定画面");
-							}
-							setTitle(getString(R.string.changing));
-							String script =
-								"javascript:{" +
-									"document.getElementById('nick_name').value = '" + handleName + "';" +
-									"preview();" +
-									"document.forms.config.onsubmit();" +
-								"};";
-							view.loadUrl(script);
-						}
-					}
-					else {
-						if (!bOnStart) {
-							Toast.makeText(getApplicationContext(), R.string.change_handle_name_maybe_failed, Toast.LENGTH_SHORT).show();
-							finish();
-						}
-					}
-				} else if (url.startsWith("http://t.gree.jp/#action=profile_look_introduction&group=people&tab=introduction&user_id=")) {
-					if (actionState == GREE_SETTINGS_PROFILE) {
-						if (bOnStart) {
-							;
-						}
-						else {
-							actionState = GREE_SHOW_PROFILE;
-							if (Logger.isDebugEnabled()) {
-								Logger.debug("自己紹介画面");
+								Logger.debug("プロフィール画面(変更後)");
 							}
 							if (doriReq == HandleNameBean.DORILAND_REQUEST_NONE) {
 								// ドリランドのリクエストは制御しないのでログアウトする。
@@ -255,7 +268,7 @@ public class BrowserActivity extends Activity {
 					}
 				} else if ("http://apps.gree.net/gd/app/info/setting/view/98".equals(url)) {
 					// ドリランドのアプリ設定画面
-					if (actionState == GREE_SHOW_PROFILE) {
+					if (actionState == GREE_CHANGE_PROFILE_AFTER) {
 						if (bOnStart) {
 							setTitle(getString(R.string.dori_request_changing));
 						}
@@ -304,7 +317,7 @@ public class BrowserActivity extends Activity {
 						}
 					}
 				} else if ("http://t.gree.jp/?action=top".equals(url)) {
-					if ((actionState == GREE_SHOW_PROFILE) || (actionState == GREE_DORILAND_APP_SETTING)) {
+					if ((actionState == GREE_CHANGE_PROFILE_AFTER) || (actionState == GREE_DORILAND_APP_SETTING)) {
 						if (bOnStart) {
 							setTitle(getString(R.string.logouted));
 						}

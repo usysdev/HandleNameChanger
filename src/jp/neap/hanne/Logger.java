@@ -7,6 +7,6 @@ public class Logger {
 	}
 
 	public static void debug(String message) {
-		android.util.Log.v("GAMETIMER", message);
+		android.util.Log.v("HANNE", message);
 	}
 }

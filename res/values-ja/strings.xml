@@ -17,6 +17,7 @@
 	<string name="tying_login">ログインしています</string>
 	<string name="logined">ログインしました</string>
 	<string name="changing">ニックネームを変更中です</string>
+	<string name="changed">ニックネームを変更しました</string>
 	<string name="dori_request_changing">ドリランドのリクエスト設定を変更中です</string>
 	<string name="logouted">ログアウトしました</string>
 	<string name="change_handle_name_success">ニックネームの変更は成功しました</string>	
