@@ -3,6 +3,8 @@
  */
 package jp.neap.hanne;
 
+import java.util.ArrayList;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -28,11 +30,9 @@ public class BrowserActivity extends Activity {
 
 	private static final int GREE_TOP_PC = 3;
 
-	private static final int GREE_CHANGE_PROFILE_BEFORE = 4;
+	private static final int GREE_CHANGE_PROFILE = 4;
 
-	private static final int GREE_CHANGE_PROFILE_AFTER = 5;
-
-	private static final int GREE_DORILAND_APP_SETTING = 6;
+	private static final int GREE_REQUEST_SETTING = 5;
 
 	private static final int GREE_LOGOUT = 7;
 
@@ -61,10 +61,11 @@ public class BrowserActivity extends Activity {
 		final String loginName = browserIntent.getStringExtra("loginName");
 		final String password = browserIntent.getStringExtra("password");
 		final String handleName = browserIntent.getStringExtra("handleName");
-		final int doriReq = browserIntent.getIntExtra("doriReq", 0);
-
+		final int request = browserIntent.getIntExtra("request", 0);
+		final ArrayList<Integer> requestTargetIdList = (ArrayList<Integer>)browserIntent.getSerializableExtra("requestTargetIdList"); 
+		
 		if (Logger.isDebugEnabled()) {
-			Logger.debug("appType=" + appType + ",loginName=" + loginName + ",password=" + password + ",handleName=" + handleName + ",doriReq=" + doriReq);
+			Logger.debug("appType=" + appType + ",loginName=" + loginName + ",password=" + password + ",handleName=" + handleName + ",request=" + request);
 		}
 
 		final WebView webView = (WebView)findViewById(R.id.webview); 
@@ -208,7 +209,7 @@ public class BrowserActivity extends Activity {
 							setTitle(getString(R.string.changing));
 						}
 						else {
-							actionState = GREE_CHANGE_PROFILE_BEFORE;
+							actionState = GREE_CHANGE_PROFILE;
 							if (Logger.isDebugEnabled()) {
 								Logger.debug("プロフィール画面(変更前)");
 							}
@@ -234,17 +235,17 @@ public class BrowserActivity extends Activity {
 						}
 					}
 				} else if ("https://secure.gree.jp/?mode=home&act=config_profile_form".equals(url)) {
-					if (actionState == GREE_CHANGE_PROFILE_BEFORE) {
+					if (actionState == GREE_CHANGE_PROFILE) {
 						if (bOnStart) {
 							setTitle(getString(R.string.changed));
 						}
 						else {
-							actionState = GREE_CHANGE_PROFILE_AFTER;
+							actionState = GREE_REQUEST_SETTING;
 							if (Logger.isDebugEnabled()) {
 								Logger.debug("プロフィール画面(変更後)");
 							}
-							if (doriReq == HandleNameBean.DORILAND_REQUEST_NONE) {
-								// ドリランドのリクエストは制御しないのでログアウトする。
+							if (request == HandleNameBean.REQUEST_NONE) {
+								// リクエストは制御しないのでログアウトする。
 								String script =
 									"javascript:{" +
 										"location.href='http://t.gree.jp/?mode=id&act=logout';" +
@@ -252,11 +253,22 @@ public class BrowserActivity extends Activity {
 								view.loadUrl(script);
 							}
 							else {
-								String script =
+								if (requestTargetIdList.size() > 0) {
+									final RequestSetting requestSetting = RequestSetting.getRequestSetting(getApplicationContext(), requestTargetIdList);
+									String script =
 										"javascript:{" +
-											"location.href='http://apps.gree.net/gd/app/info/setting/view/98';" +
+											"location.href='" + requestSetting.url() + "';" +
 										"};";
 									view.loadUrl(script);
+								}
+								else {
+									// リクエストを制御するアプリが指定されていないのでログアウトする。
+									String script =
+											"javascript:{" +
+												"location.href='http://t.gree.jp/?mode=id&act=logout';" +
+											"};";
+									view.loadUrl(script);
+								}
 							}
 						}
 					}
@@ -266,47 +278,28 @@ public class BrowserActivity extends Activity {
 							finish();
 						}
 					}
-				} else if ("http://apps.gree.net/gd/app/info/setting/view/98".equals(url)) {
-					// ドリランドのアプリ設定画面
-					if (actionState == GREE_CHANGE_PROFILE_AFTER) {
+				} else if ("http://apps.gree.net/gd/app/info/setting/view/98".equals(url) ||
+						   "http://apps.gree.net/gd/app/info/setting/view/1242".equals(url) ||
+						   "http://apps.gree.net/gd/app/info/setting/view/99".equals(url) ||
+						   "http://apps.gree.net/gd/app/info/setting/view/96".equals(url) ||
+						   "http://apps.gree.net/gd/app/info/setting/view/1236".equals(url) ||
+						   "http://apps.gree.net/gd/app/info/setting/view/2676".equals(url) ||
+						   "http://apps.gree.net/gd/app/info/setting/view/56641".equals(url)) {
+					// アプリ設定画面
+					if (actionState == GREE_REQUEST_SETTING) {
+						final RequestSetting requestSetting = RequestSetting.getRequestSetting(getApplicationContext(), requestTargetIdList);
 						if (bOnStart) {
-							setTitle(getString(R.string.dori_request_changing));
+							setTitle(getString(R.string.request_changing, requestSetting.name()));
 						}
 						else {
-							actionState = GREE_DORILAND_APP_SETTING;
 							if (Logger.isDebugEnabled()) {
-								Logger.debug("ドリランドのアプリ設定画面");
+								Logger.debug(getString(R.string.request_changing, requestSetting.name()));
 							}
-							setTitle(getString(R.string.dori_request_changing));
-							view.setTag(R.string.webview_tag, "WAITING");
-							if (doriReq == HandleNameBean.DORILAND_REQUEST_ON) {
-								String script =
-										"javascript:{" +
-											"document.getElementById('accept_request_message_email').checked = true;" +
-											"document.getElementById('accept_request_message_push').checked = true;" +
-											"document.getElementById('accept_request_message').checked = true;" +
-											"sendRequest(this);" +
-										"};";
-								view.loadUrl(script);
-							} else if (doriReq == HandleNameBean.DORILAND_REQUEST_OFF) {
-								String script =
-									"javascript:{" +
-										"document.getElementById('accept_request_message_email').checked = false;" +
-										"document.getElementById('accept_request_message_push').checked = false;" +
-										"document.getElementById('accept_request_message').checked = false;" +
-										"sendRequest(this);" +
-									"};";
-								view.loadUrl(script);
-							}
-
-							waitUntilRequestAccepted(view);
-							
-							{
-								String script =
-									"javascript:{" +
-										"location.href='http://t.gree.jp/?mode=id&act=logout';" +
-									"};";
-								view.loadUrl(script);
+							setTitle(getString(R.string.request_changing, requestSetting.name()));
+							if (request == HandleNameBean.REQUEST_ON) {
+								view.loadUrl(requestSetting.scriptON());
+							} else if (request == HandleNameBean.REQUEST_OFF) {
+								view.loadUrl(requestSetting.scriptOFF());
 							}
 						}
 					}
@@ -317,7 +310,7 @@ public class BrowserActivity extends Activity {
 						}
 					}
 				} else if ("http://t.gree.jp/?action=top".equals(url)) {
-					if ((actionState == GREE_CHANGE_PROFILE_AFTER) || (actionState == GREE_DORILAND_APP_SETTING)) {
+					if (actionState == GREE_REQUEST_SETTING) {
 						if (bOnStart) {
 							setTitle(getString(R.string.logouted));
 						}
@@ -337,21 +330,6 @@ public class BrowserActivity extends Activity {
 							finish();
 						}
 					}
-				}
-			}
-
-			private void waitUntilRequestAccepted(WebView view) {
-				final long startTime = System.currentTimeMillis();
-				for (;;) {
-					if ("ACCEPTED".equals(view.getTag(R.string.webview_tag))) {
-						return;
-					}
-					if ((System.currentTimeMillis() - startTime) >= 10000L) {
-						return;
-					}
-					try {
-						Thread.sleep(100L);
-					} catch (Exception __ignore__) {}
 				}
 			}
 
@@ -385,9 +363,29 @@ public class BrowserActivity extends Activity {
 		webView.setWebChromeClient(new WebChromeClient(){
 			@Override
 			public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
-				setTitle(message);
+				if (Logger.isDebugEnabled()) {
+					Logger.debug("アラート受信");
+				}
+//				setTitle(message);
 				result.confirm();
-				view.setTag(R.string.webview_tag, "ACCEPTED");
+
+				// 次のゲームまたはログアウト
+				requestTargetIdList.remove(0);
+				if (requestTargetIdList.size() > 0) {
+					final RequestSetting nextRequestSetting = RequestSetting.getRequestSetting(getApplicationContext(), requestTargetIdList);
+					String script =
+							"javascript:{" +
+								"location.href='" + nextRequestSetting.url() + "';" +
+							"};";
+						view.loadUrl(script);
+				}
+				else {
+					String script =
+						"javascript:{" +
+							"location.href='http://t.gree.jp/?mode=id&act=logout';" +
+						"};";
+					view.loadUrl(script);
+				}
 				return true;
 			}
 		});

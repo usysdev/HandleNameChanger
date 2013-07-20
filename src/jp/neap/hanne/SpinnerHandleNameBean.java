@@ -16,10 +16,10 @@ public class SpinnerHandleNameBean extends HandleNameBean {
 			String loginName,
 			String password,
 			String handleName,
-			int doriReq,
+			int request,
 			String spinnetLabel
 			) {
-		super(id, appType, loginName, password, handleName, doriReq);
+		super(id, appType, loginName, password, handleName, request);
 		this.spinnetLabel = spinnetLabel;
 	}
 

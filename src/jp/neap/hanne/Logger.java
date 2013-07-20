@@ -3,7 +3,7 @@ package jp.neap.hanne;
 public class Logger {
 
 	public static boolean isDebugEnabled() {
-		return false;
+		return true;
 	}
 
 	public static void debug(String message) {

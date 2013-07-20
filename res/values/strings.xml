@@ -18,7 +18,7 @@
 	<string name="logined">logined.</string>
 	<string name="changing">Changing Nick Name.</string>
 	<string name="changed">Nick Name Changed.</string>
-	<string name="dori_request_changing">Changing Doriland Request.</string>
+	<string name="request_changing">%1$s Changing Request.</string>
 	<string name="logouted">Logouted.</string>
 	<string name="change_handle_name_success">Changing nick name was succeeded.</string>	
 	<string name="change_handle_name_maybe_failed">Changing nick name maybe failed.</string>	
@@ -26,17 +26,27 @@
 	<string name="sample_handle_name_1">Foo【MAYBE】</string>	
 	<string name="sample_handle_name_2">Foo【NG】</string>	
 	<string name="gree_account_usage">Please input mailaddress and password(optional) for GREE. </string>
-	<string name="doriland_request">Doriland Request</string>
+	<string name="request">Request</string>
 	<string name="copy_from_other_settings">Copy From Other Setting</string>
-	<string name="doriland_request_on">Doriland(request ON)</string>
-	<string name="doriland_request_off">Doriland(request OFF)</string>
-	<string name="webview_tag">webview_tag</string>
+	<string name="request_on">Doriland(request ON)</string>
+	<string name="request_off">Doriland(request OFF)</string>
 	<string name="do_not_copy">Do not copy</string>
 	<string name="login_usage">Please input password and tap login button.</string>
-	<string-array name="dori_req_entries">  
-	    <item>Not Change/Not play doriland</item>  
-		<item>Change to Request ON</item>  
-   		<item>Change to Request OFF</item>  
+	<string-array name="request_entries">  
+	    <item>Not Change</item>  
+		<item>Request ON</item>  
+   		<item>Request OFF</item>  
 	</string-array> 
     <string name="co_operation">Co-op</string>
+    <string name="select_games">Games</string>
+    <string name="game_0">Doriland</string>
+    <string name="game_1">Kerberos</string>
+    <string name="game_2">Monpura</string>
+    <string name="game_3">TsuriSta</string>
+    <string name="game_4">Baseball Dream9</string>
+    <string name="game_5">Gundam Masters</string>
+    <string name="game_6">Oozumo Card Battle</string>
+    <string name="msg_game_select">Select target games.</string>
+    <string name="dlgtitle_gree">GREE</string>
+
 </resources>

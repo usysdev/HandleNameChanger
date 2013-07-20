@@ -19,31 +19,6 @@
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
 					android:layout_weight="1"
-					android:text="@string/application_type_name">
-				</TextView>
-			</TableRow>
-		    <TableRow
-			    android:layout_width="wrap_content"
-			    android:layout_height="wrap_content">
-				<RadioGroup
-				    android:id="@+id/appTypeGroup"
-					android:orientation="vertical"
-					android:layout_width="fill_parent"
-					android:layout_height="wrap_content">
-					<RadioButton
-					    android:id="@+id/radioGree"
-						android:layout_width="wrap_content"
-						android:layout_height="wrap_content"
-						android:text="@string/apptype_gree" />
-				</RadioGroup>
-			</TableRow>
-		    <TableRow
-		        android:layout_width="wrap_content"
-		        android:layout_height="wrap_content">
-				<TextView
-					android:layout_width="fill_parent"
-					android:layout_height="wrap_content"
-					android:layout_weight="1"
 					android:text="@string/gree_account_usage"
 					android:textColor="#0000ff">
 				</TextView>
@@ -124,19 +99,49 @@
 					android:layout_width="fill_parent"
 					android:layout_height="wrap_content"
 					android:layout_weight="1"
-					android:text="@string/doriland_request">
+					android:text="@string/request">
 				</TextView>
 			</TableRow>
+			<TableRow
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content">
+				<TextView
+					android:id="@+id/txtNoGameSelected"  
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:layout_weight="1"
+					android:text="@string/msg_game_select"
+					android:textColor="#ff0000">
+				</TextView>
+			</TableRow>
+		</TableLayout>
+		<TableLayout
+		    android:layout_height="wrap_content"
+		    android:layout_width="fill_parent"
+		    android:layout_weight="1">
 			<TableRow
 			    android:layout_width="wrap_content"
 			    android:layout_height="wrap_content">
 				<Spinner  
-					android:id="@+id/spinnerDoriReq"  
+					android:id="@+id/spinnerRequest"  
 					android:layout_width="wrap_content"  
 					android:layout_height="wrap_content"  
-					android:entries="@array/dori_req_entries">  
+					android:layout_weight="1"
+					android:entries="@array/request_entries">  
 				</Spinner> 
+			    <Button
+					android:id="@+id/btn_select_app"  
+		    		android:layout_width="wrap_content" 
+    				android:layout_height="wrap_content" 
+					android:layout_weight="0"
+		    		android:text="@string/select_games"
+    			/>
 			</TableRow>
+		</TableLayout>
+		<TableLayout
+		    android:layout_height="wrap_content"
+		    android:layout_width="fill_parent"
+		    android:layout_weight="1">
 			<TableRow
 		        android:layout_width="wrap_content"
 		        android:layout_height="wrap_content">

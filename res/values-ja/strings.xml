@@ -18,7 +18,7 @@
 	<string name="logined">ログインしました</string>
 	<string name="changing">ニックネームを変更中です</string>
 	<string name="changed">ニックネームを変更しました</string>
-	<string name="dori_request_changing">ドリランドのリクエスト設定を変更中です</string>
+	<string name="request_changing">%1$sのリクエスト設定を変更中です</string>
 	<string name="logouted">ログアウトしました</string>
 	<string name="change_handle_name_success">ニックネームの変更は成功しました</string>	
 	<string name="change_handle_name_maybe_failed">ニックネームの変更に失敗した可能性があります</string>
@@ -26,17 +26,27 @@
 	<string name="sample_handle_name_1">ニックネーム【要請△】</string>	
 	<string name="sample_handle_name_2">ニックネーム【要請×】</string>	
 	<string name="gree_account_usage">GREEのログインアカウントを入力してください。パスワードの入力は任意です。</string>
-	<string name="doriland_request">ドリランドリクエスト</string>
+	<string name="request">リクエスト</string>
 	<string name="copy_from_other_settings">他の設定値をコピー</string>
-	<string name="doriland_request_on">ドリ(リクON)</string>
-	<string name="doriland_request_off">ドリ(リクOFF)</string>
-	<string name="webview_tag">webview_tag</string>
+	<string name="request_on">リクON</string>
+	<string name="request_off">リクOFF</string>
 	<string name="do_not_copy">コピーしない</string>
 	<string name="login_usage">パスワード入力後、ログインボタンをタップしてください。自動的にニックネームを変更します。</string>
-	<string-array name="dori_req_entries">  
-	    <item>変更しない/ドリランドは始めていない</item>  
-		<item>リクエストONにする</item>  
-   		<item>リクエストOFFにする</item>  
+	<string-array name="request_entries">  
+	    <item>変更しない</item>  
+		<item>リクエストON</item>  
+   		<item>リクエストOFF</item>  
 	</string-array> 
     <string name="co_operation">連携</string>
+    <string name="select_games">ゲーム選択</string>
+    <string name="game_0">探検ドリランド</string>
+    <string name="game_1">聖戦ケルベロス</string>
+    <string name="game_2">モンプラ</string>
+    <string name="game_3">釣り★スタ</string>
+    <string name="game_4">プロ野球ドリームナイン</string>
+    <string name="game_5">ガンダムマスターズ</string>
+    <string name="game_6">大相撲カード決戦</string>
+    <string name="msg_game_select">対象ゲームを選択してください。</string>
+    <string name="dlgtitle_gree">GREE</string>
+
 </resources>

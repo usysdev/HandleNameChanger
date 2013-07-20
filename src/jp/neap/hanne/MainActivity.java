@@ -1,9 +1,11 @@
 package jp.neap.hanne;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import android.net.Uri;
 import android.os.Bundle;
@@ -14,27 +16,20 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.database.sqlite.SQLiteDatabase;
-import android.graphics.Color;
 import android.text.Html;
-import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
-import android.webkit.CookieManager;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.webkit.WebViewClient;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 import android.widget.AdapterView.OnItemSelectedListener;
 
 public class MainActivity extends Activity {
@@ -117,10 +112,12 @@ public class MainActivity extends Activity {
 					@Override
 					public void onClick(View buttonView) {
 						final HandleNameBean kickBean;
+						final ArrayList<Integer> requestTargetIdList;
 						final DBHelper dbHelper = new DBHelper(getApplicationContext(), DBHelper.DB_FILENAME, null, DBHelper.DB_VERSION);
 						final SQLiteDatabase db = dbHelper.getReadableDatabase();
 						try {
 							kickBean = dbHelper.getRecordById(db, handleNameBean.id());
+							requestTargetIdList = dbHelper.listRequestTargetGames(db);
 						}
 						finally {
 							db.close();
@@ -133,7 +130,8 @@ public class MainActivity extends Activity {
 							browserIntent.putExtra("loginName", kickBean.loginName());
 							browserIntent.putExtra("password", kickBean.password());
 							browserIntent.putExtra("handleName", kickBean.handleName());
-							browserIntent.putExtra("doriReq", kickBean.doriReq());
+							browserIntent.putExtra("request", kickBean.request());
+							browserIntent.putExtra("requestTargetIdList", requestTargetIdList);
 							startActivity(browserIntent);
 						}
 						else {
@@ -157,64 +155,210 @@ public class MainActivity extends Activity {
 					public void onClick(View buttonView) {
 						// ポップアップダイアログ用に新しいビューを作成する。
 						LayoutInflater inflater = LayoutInflater.from(buttonView.getContext());
-				        final View dialogView = inflater.inflate(R.layout.handlename_setting, null);
+				        final View mainDialogView = inflater.inflate(R.layout.handlename_setting, null);
 
 				        final HandleNameBean curHandleNameBean;
+				        final int requestTargetIdCount;
 				        {
 							final DBHelper dbHelper = new DBHelper(getApplicationContext(), DBHelper.DB_FILENAME, null, DBHelper.DB_VERSION);
 							final SQLiteDatabase db = dbHelper.getReadableDatabase();
 							try {
 								curHandleNameBean = dbHelper.getRecordById(db, settingButtonIdToBeanIdMap.get(buttonView.getId()));
+								requestTargetIdCount = dbHelper.getRequestTargetGamesCount(db);
 							}
 							finally {
 								db.close();
 							}
 						}
 
-						// アプリケーションを選択する
-				        {
-				        	final RadioGroup radioGroup = (RadioGroup)dialogView.findViewById(R.id.appTypeGroup);
-				        	switch (curHandleNameBean.appType()) {
-				        	case HandleNameBean.APPTYPE_GREE:
-					        	radioGroup.check(R.id.radioGree);
-					        	break;
-				        	}
-				        }
 				        // ログイン名見出し
 				        {
-				        	final TextView textView = (TextView)dialogView.findViewById(R.id.textLoginName);
+				        	final TextView textView = (TextView)mainDialogView.findViewById(R.id.textLoginName);
 				        	if (curHandleNameBean.appType() == HandleNameBean.APPTYPE_GREE) {
 				        		textView.setText(R.string.gree_login_name);
 				        	}
 				        }
 				        // ログイン名
 				        {
-				        	final EditText editBox = (EditText)dialogView.findViewById(R.id.editLoginName);
+				        	final EditText editBox = (EditText)mainDialogView.findViewById(R.id.editLoginName);
 				       		editBox.setText(curHandleNameBean.loginName());
 				        }
 				        // パスワード
 				        {
-				        	final EditText editBox = (EditText)dialogView.findViewById(R.id.editPassword);
+				        	final EditText editBox = (EditText)mainDialogView.findViewById(R.id.editPassword);
 				       		editBox.setText(curHandleNameBean.password());
 				        }
 				        // ハンドル名
 				        {
-				        	final EditText editBox = (EditText)dialogView.findViewById(R.id.editHandleName);
+				        	final EditText editBox = (EditText)mainDialogView.findViewById(R.id.editHandleName);
 				       		editBox.setText(curHandleNameBean.handleName());
 				        }
-				        // ドリランドリクエスト
+				        // リクエスト
 				        {
-				        	final Spinner spinner = (Spinner)dialogView.findViewById(R.id.spinnerDoriReq);
-				        	switch (curHandleNameBean.doriReq()) {
-				        	case HandleNameBean.DORILAND_REQUEST_ON:
+				        	final Spinner spinner = (Spinner)mainDialogView.findViewById(R.id.spinnerRequest);
+				        	switch (curHandleNameBean.request()) {
+				        	case HandleNameBean.REQUEST_ON:
 				        		spinner.setSelection(1);
 				        		break;
-				        	case HandleNameBean.DORILAND_REQUEST_OFF:	
+				        	case HandleNameBean.REQUEST_OFF:	
 				        		spinner.setSelection(2);
 				        		break;
 				        	default:
 				        		spinner.setSelection(0);
 				        	}
+				        	spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener(){
+
+								@Override
+								public void onItemSelected(AdapterView<?> parent,
+										View view, int position, long id) {
+									// TODO Auto-generated method stub
+						        	final TextView txtNoGameSelected = (TextView)mainDialogView.findViewById(R.id.txtNoGameSelected);
+						        	if (position == 0) {
+						        		txtNoGameSelected.setVisibility(View.GONE);
+						        	}
+						        	else {
+						        		final int requestTargetIdCount;
+						        		{
+						        			final DBHelper dbHelper = new DBHelper(getApplicationContext(), DBHelper.DB_FILENAME, null, DBHelper.DB_VERSION);
+						        			final SQLiteDatabase db = dbHelper.getReadableDatabase();
+						        			try {
+						        				requestTargetIdCount = dbHelper.getRequestTargetGamesCount(db);
+						        			}
+						        			finally {
+						        				db.close();
+						        			}
+						        		}
+						        		txtNoGameSelected.setVisibility((requestTargetIdCount > 0) ? View.GONE : View.VISIBLE);
+						        	}
+								}
+
+								@Override
+								public void onNothingSelected(
+										AdapterView<?> arg0) {
+									// TODO Auto-generated method stub
+									
+								}
+							});
+				        }
+				        // ゲーム選択メッセージ
+				        {
+				        	final TextView txtNoGameSelected = (TextView)mainDialogView.findViewById(R.id.txtNoGameSelected);
+				        	txtNoGameSelected.setVisibility((requestTargetIdCount > 0) ? View.VISIBLE : View.GONE);
+				        }
+				        // ゲーム選択
+				        {
+				        	final Button btnSelectGames = (Button)mainDialogView.findViewById(R.id.btn_select_app);
+				        	btnSelectGames.setOnClickListener(new View.OnClickListener(){
+
+								@Override
+								public void onClick(View buttonView) {
+									// TODO Auto-generated method stub
+									final LayoutInflater inflater = LayoutInflater.from(buttonView.getContext());
+							        final View gameDialogView = inflater.inflate(R.layout.request_games, null);
+							        final Set<Integer> requestTargetGameIdSet;
+							        {
+							        	final DBHelper dbHelper = new DBHelper(getApplicationContext(), DBHelper.DB_FILENAME, null, DBHelper.DB_VERSION);
+							        	final SQLiteDatabase db = dbHelper.getReadableDatabase();
+							        	try {
+							        		requestTargetGameIdSet = dbHelper.listRequestTargetGamesSet(db);
+							        	}
+							        	finally {
+							        		db.close();
+							        	}
+							        }
+							        {
+							        	final CheckBox chkGame0 = (CheckBox)gameDialogView.findViewById(R.id.chk_game_0);
+							        	chkGame0.setChecked(requestTargetGameIdSet.contains(0));
+							        }
+							        {
+							        	final CheckBox chkGame1 = (CheckBox)gameDialogView.findViewById(R.id.chk_game_1);
+							        	chkGame1.setChecked(requestTargetGameIdSet.contains(1));
+							        }
+							        {
+							        	final CheckBox chkGame2 = (CheckBox)gameDialogView.findViewById(R.id.chk_game_2);
+							        	chkGame2.setChecked(requestTargetGameIdSet.contains(2));
+							        }
+							        {
+							        	final CheckBox chkGame3 = (CheckBox)gameDialogView.findViewById(R.id.chk_game_3);
+							        	chkGame3.setChecked(requestTargetGameIdSet.contains(3));
+							        }
+							        {
+							        	final CheckBox chkGame4 = (CheckBox)gameDialogView.findViewById(R.id.chk_game_4);
+							        	chkGame4.setChecked(requestTargetGameIdSet.contains(4));
+							        }
+							        {
+							        	final CheckBox chkGame5 = (CheckBox)gameDialogView.findViewById(R.id.chk_game_5);
+							        	chkGame5.setChecked(requestTargetGameIdSet.contains(5));
+							        }
+							        {
+							        	final CheckBox chkGame6 = (CheckBox)gameDialogView.findViewById(R.id.chk_game_6);
+							        	chkGame6.setChecked(requestTargetGameIdSet.contains(6));
+							        }
+							        new AlertDialog.Builder(buttonView.getContext())
+							        .setTitle(R.string.select_games)
+							        .setView(gameDialogView)
+						        	.setPositiveButton(
+						        			gameDialogView.getContext().getString(R.string.ok), 
+						        		new DialogInterface.OnClickListener() {          
+						        			@Override
+						        			public void onClick(DialogInterface dialog, int which) {
+									        	final DBHelper dbHelper = new DBHelper(getApplicationContext(), DBHelper.DB_FILENAME, null, DBHelper.DB_VERSION);
+									        	final SQLiteDatabase db = dbHelper.getWritableDatabase();
+									        	final int requestTargetGameCount;
+									        	try {
+											        {
+											        	final CheckBox chkGame0 = (CheckBox)gameDialogView.findViewById(R.id.chk_game_0);
+											        	dbHelper.updateRecordRequestGame(db, 0, chkGame0.isChecked() ? 1 : 0);
+											        }
+											        {
+											        	final CheckBox chkGame1 = (CheckBox)gameDialogView.findViewById(R.id.chk_game_1);
+											        	dbHelper.updateRecordRequestGame(db, 1, chkGame1.isChecked() ? 1 : 0);
+											        }
+											        {
+											        	final CheckBox chkGame2 = (CheckBox)gameDialogView.findViewById(R.id.chk_game_2);
+											        	dbHelper.updateRecordRequestGame(db, 2, chkGame2.isChecked() ? 1 : 0);
+											        }
+											        {
+											        	final CheckBox chkGame3 = (CheckBox)gameDialogView.findViewById(R.id.chk_game_3);
+											        	dbHelper.updateRecordRequestGame(db, 3, chkGame3.isChecked() ? 1 : 0);
+											        }
+											        {
+											        	final CheckBox chkGame4 = (CheckBox)gameDialogView.findViewById(R.id.chk_game_4);
+											        	dbHelper.updateRecordRequestGame(db, 4, chkGame4.isChecked() ? 1 : 0);
+											        }
+											        {
+											        	final CheckBox chkGame5 = (CheckBox)gameDialogView.findViewById(R.id.chk_game_5);
+											        	dbHelper.updateRecordRequestGame(db, 5, chkGame5.isChecked() ? 1 : 0);
+											        }
+											        {
+											        	final CheckBox chkGame6 = (CheckBox)gameDialogView.findViewById(R.id.chk_game_6);
+											        	dbHelper.updateRecordRequestGame(db, 6, chkGame6.isChecked() ? 1 : 0);
+											        }
+											        requestTargetGameCount = dbHelper.getRequestTargetGamesCount(db);
+									        	}
+									        	finally {
+									        		db.close();
+									        	}
+									        	final Spinner spinner = (Spinner)mainDialogView.findViewById(R.id.spinnerRequest);
+									        	final TextView txtNoGameSelected = (TextView)mainDialogView.findViewById(R.id.txtNoGameSelected);
+									        	if (spinner.getSelectedItemPosition() == 0) {
+									        		txtNoGameSelected.setVisibility(View.GONE);
+									        	}
+									        	else {
+									        		txtNoGameSelected.setVisibility((requestTargetGameCount > 0) ? View.GONE : View.VISIBLE);
+									        	}
+						        			}
+						        		})
+						        	.setNegativeButton(
+						        			gameDialogView.getContext().getString(R.string.cancel), 
+						        		new DialogInterface.OnClickListener() {          
+						        			@Override
+						        			public void onClick(DialogInterface dialog, int which) {
+						        			}
+						        		})
+						        	.show();
+								}
+							});
 				        }
 				        // 他の設定値をコピーする
 				        {
@@ -240,11 +384,11 @@ public class MainActivity extends Activity {
 					    					buffer.append(sep).append(bean.handleName());
 					    					sep = "/";
 					    				}
-					    				if (bean.doriReq() == HandleNameBean.DORILAND_REQUEST_ON) {
-					    					buffer.append(sep).append(getApplicationContext().getString(R.string.doriland_request_on));
+					    				if (bean.request() == HandleNameBean.REQUEST_ON) {
+					    					buffer.append(sep).append(getApplicationContext().getString(R.string.request_on));
 					    					sep = "/";
-					    				} else if (bean.doriReq() == HandleNameBean.DORILAND_REQUEST_OFF) {
-					    					buffer.append(sep).append(getApplicationContext().getString(R.string.doriland_request_off));
+					    				} else if (bean.request() == HandleNameBean.REQUEST_OFF) {
+					    					buffer.append(sep).append(getApplicationContext().getString(R.string.request_off));
 					    					sep = "/";
 					    				}
 					    				adapterItemList.add(new SpinnerHandleNameBean(
@@ -253,12 +397,12 @@ public class MainActivity extends Activity {
 					    						bean.loginName(),
 					    						bean.password(),
 					    						bean.handleName(),
-					    						bean.doriReq(),
+					    						bean.request(),
 					    						buffer.toString()));
 
 					    			}
 					    		}
-					    		final Spinner spinnerCopySettings = (Spinner)dialogView.findViewById(R.id.spinnerCopySettings);
+					    		final Spinner spinnerCopySettings = (Spinner)mainDialogView.findViewById(R.id.spinnerCopySettings);
 					    		spinnerCopySettings.setAdapter(adapterItemList);
 					    		spinnerCopySettings.setOnItemSelectedListener(new OnItemSelectedListener(){
 
@@ -274,24 +418,24 @@ public class MainActivity extends Activity {
 										final SpinnerHandleNameBean bean = (SpinnerHandleNameBean)spinnerTarget.getSelectedItem();
 										if (bean.id() > -1) {
 											{
-									        	final EditText editBox = (EditText)dialogView.findViewById(R.id.editLoginName);
+									        	final EditText editBox = (EditText)mainDialogView.findViewById(R.id.editLoginName);
 									       		editBox.setText(bean.loginName());
 											}
 											{
-									        	final EditText editBox = (EditText)dialogView.findViewById(R.id.editPassword);
+									        	final EditText editBox = (EditText)mainDialogView.findViewById(R.id.editPassword);
 									       		editBox.setText(bean.password());
 											}
 											{
-									        	final EditText editBox = (EditText)dialogView.findViewById(R.id.editHandleName);
+									        	final EditText editBox = (EditText)mainDialogView.findViewById(R.id.editHandleName);
 									       		editBox.setText(bean.handleName());
 											}
 									        {
-									        	final Spinner spinner = (Spinner)dialogView.findViewById(R.id.spinnerDoriReq);
-									        	switch (bean.doriReq()) {
-									        	case HandleNameBean.DORILAND_REQUEST_ON:
+									        	final Spinner spinner = (Spinner)mainDialogView.findViewById(R.id.spinnerRequest);
+									        	switch (bean.request()) {
+									        	case HandleNameBean.REQUEST_ON:
 									        		spinner.setSelection(1);
 									        		break;
-									        	case HandleNameBean.DORILAND_REQUEST_OFF:	
+									        	case HandleNameBean.REQUEST_OFF:	
 									        		spinner.setSelection(2);
 									        		break;
 									        	default:
@@ -316,9 +460,10 @@ public class MainActivity extends Activity {
 				        }
 
 				        new AlertDialog.Builder(buttonView.getContext())
-			        	.setView(dialogView)
+			        	.setView(mainDialogView)
+			        	.setTitle(R.string.dlgtitle_gree)
 			        	.setPositiveButton(
-			        			dialogView.getContext().getString(R.string.ok), 
+			        			mainDialogView.getContext().getString(R.string.ok), 
 			        		new DialogInterface.OnClickListener() {          
 			        			@Override
 			        			public void onClick(DialogInterface dialog, int which) {
@@ -326,37 +471,29 @@ public class MainActivity extends Activity {
 			        				String loginName = "";
 									String password = "";
 									String handleName = "";
-									int doriReq = HandleNameBean.DORILAND_REQUEST_NONE;
+									int request = HandleNameBean.REQUEST_NONE;
 									
 									{
-							        	final RadioGroup radioGroup = (RadioGroup)dialogView.findViewById(R.id.appTypeGroup);
-							        	switch (radioGroup.getCheckedRadioButtonId()) {
-							        	case R.id.radioGree:
-							        		appType = HandleNameBean.APPTYPE_GREE;
-							        		break;
-							        	}
-									}
-									{
-							        	final EditText editBox = (EditText)dialogView.findViewById(R.id.editLoginName);
+							        	final EditText editBox = (EditText)mainDialogView.findViewById(R.id.editLoginName);
 							        	loginName = editBox.getText().toString();
 									}
 									{
-							        	final EditText editBox = (EditText)dialogView.findViewById(R.id.editPassword);
+							        	final EditText editBox = (EditText)mainDialogView.findViewById(R.id.editPassword);
 							        	password = editBox.getText().toString();
 									}
 									{
-										final EditText editBox = (EditText)dialogView.findViewById(R.id.editHandleName);
+										final EditText editBox = (EditText)mainDialogView.findViewById(R.id.editHandleName);
 										handleName = editBox.getText().toString();
 									}
 							        // ドリランドリクエスト
 							        {
-							        	final Spinner spinner = (Spinner)dialogView.findViewById(R.id.spinnerDoriReq);
+							        	final Spinner spinner = (Spinner)mainDialogView.findViewById(R.id.spinnerRequest);
 							        	switch (spinner.getSelectedItemPosition()) {
 							        	case 1:
-							        		doriReq = HandleNameBean.DORILAND_REQUEST_ON;
+							        		request = HandleNameBean.REQUEST_ON;
 							        		break;
 							        	case 2:	
-							        		doriReq = HandleNameBean.DORILAND_REQUEST_OFF;
+							        		request = HandleNameBean.REQUEST_OFF;
 							        		break;
 							        	}
 							        }
@@ -367,7 +504,7 @@ public class MainActivity extends Activity {
 											loginName,
 											password,
 											handleName,
-											doriReq); 
+											request); 
 
 									{
 										final DBHelper dbHelper = new DBHelper(getApplicationContext(), DBHelper.DB_FILENAME, null, DBHelper.DB_VERSION);
@@ -388,7 +525,7 @@ public class MainActivity extends Activity {
 			        			}
 			        		})
 			        	.setNegativeButton(
-			        			dialogView.getContext().getString(R.string.cancel), 
+			        			mainDialogView.getContext().getString(R.string.cancel), 
 			        		new DialogInterface.OnClickListener() {          
 			        			@Override
 			        			public void onClick(DialogInterface dialog, int which) {
