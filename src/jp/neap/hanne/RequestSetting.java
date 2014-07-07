@@ -147,10 +147,12 @@ public class RequestSetting {
 					"http://apps.gree.net/gd/app/info/setting/view/56641",
 					"javascript:{" +
 						"document.getElementById('accept_request_message').checked = true;" +
+						"document.getElementById('accept_request_message_email').checked = true;" +
 						"sendRequest(this);" +
 					"};",
 					"javascript:{" +
 						"document.getElementById('accept_request_message').checked = false;" +
+						"document.getElementById('accept_request_message_email').checked = false;" +
 						"sendRequest(this);" +
 					"};");
 		}

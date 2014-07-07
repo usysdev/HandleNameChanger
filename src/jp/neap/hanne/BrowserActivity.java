@@ -34,6 +34,8 @@ public class BrowserActivity extends Activity {
 
 	private static final int GREE_REQUEST_SETTING = 5;
 
+	private static final int GREE_REQUEST_SETTING_DONE = 6;
+
 	private static final int GREE_LOGOUT = 7;
 
 	private String escapeForJavaScript(String value) {
@@ -118,6 +120,9 @@ public class BrowserActivity extends Activity {
 			}
 
 			private void greeSmartPhone(WebView view, String url, boolean bOnStart) {
+				if (Logger.isDebugEnabled()) {
+					Logger.debug("URL=" + url);
+				}
 				if ("http://t.gree.jp/?action=login&ignore_sso=1&backto=".equals(url)) {
 					if (actionState == START) {
 						if (bOnStart) {
@@ -295,6 +300,7 @@ public class BrowserActivity extends Activity {
 							if (Logger.isDebugEnabled()) {
 								Logger.debug(getString(R.string.request_changing, requestSetting.name()));
 							}
+							actionState = GREE_REQUEST_SETTING_DONE;
 							setTitle(getString(R.string.request_changing, requestSetting.name()));
 							if (request == HandleNameBean.REQUEST_ON) {
 								view.loadUrl(requestSetting.scriptON());
@@ -302,15 +308,39 @@ public class BrowserActivity extends Activity {
 								view.loadUrl(requestSetting.scriptOFF());
 							}
 						}
-					}
-					else {
+					} else if (actionState == GREE_REQUEST_SETTING_DONE) {
+						final RequestSetting requestSetting = RequestSetting.getRequestSetting(getApplicationContext(), requestTargetIdList);
+						if (bOnStart) {
+							setTitle(getString(R.string.request_changing, requestSetting.name()));
+						}
+						else {
+							// 次のゲームまたはログアウト
+							requestTargetIdList.remove(0);
+							if (requestTargetIdList.size() > 0) {
+								actionState = GREE_REQUEST_SETTING;
+								final RequestSetting nextRequestSetting = RequestSetting.getRequestSetting(getApplicationContext(), requestTargetIdList);
+								String script =
+									"javascript:{" +
+										"location.href='" + nextRequestSetting.url() + "';" +
+									"};";
+								view.loadUrl(script);
+							}
+							else {
+								String script =
+										"javascript:{" +
+											"location.href='http://t.gree.jp/?mode=id&act=logout';" +
+										"};";
+								view.loadUrl(script);
+							}
+						}
+					} else {
 						if (!bOnStart) {
 							Toast.makeText(getApplicationContext(), R.string.change_handle_name_maybe_failed, Toast.LENGTH_SHORT).show();
 							finish();
 						}
 					}
-				} else if ("http://t.gree.jp/?action=top".equals(url)) {
-					if (actionState == GREE_REQUEST_SETTING) {
+				} else if (url.startsWith("http://games.gree.net/welcome/") && url.contains("logout")) {
+					if ((actionState == GREE_REQUEST_SETTING) || (actionState == GREE_REQUEST_SETTING_DONE)) {
 						if (bOnStart) {
 							setTitle(getString(R.string.logouted));
 						}
@@ -324,15 +354,10 @@ public class BrowserActivity extends Activity {
 							finish();
 						}
 					}
-					else {
-						if (!bOnStart) {
-							Toast.makeText(getApplicationContext(), R.string.change_handle_name_maybe_failed, Toast.LENGTH_SHORT).show();
-							finish();
-						}
-					}
 				}
 			}
 
+/*
 			private void greePC(WebView view, String url) {
 				if ("http://gree.jp/".equals(url)) {
 					// <input type="submit">タグの名前が name="submit" なので、
@@ -358,34 +383,17 @@ public class BrowserActivity extends Activity {
 					finish();
 				}
 			}
+*/
 		});
 
 		webView.setWebChromeClient(new WebChromeClient(){
 			@Override
 			public boolean onJsAlert(WebView view, String url, String message, JsResult result) {
 				if (Logger.isDebugEnabled()) {
-					Logger.debug("アラート受信");
+					Logger.debug("アラート受信:" + url + ":" + message);
 				}
 //				setTitle(message);
 				result.confirm();
-
-				// 次のゲームまたはログアウト
-				requestTargetIdList.remove(0);
-				if (requestTargetIdList.size() > 0) {
-					final RequestSetting nextRequestSetting = RequestSetting.getRequestSetting(getApplicationContext(), requestTargetIdList);
-					String script =
-							"javascript:{" +
-								"location.href='" + nextRequestSetting.url() + "';" +
-							"};";
-						view.loadUrl(script);
-				}
-				else {
-					String script =
-						"javascript:{" +
-							"location.href='http://t.gree.jp/?mode=id&act=logout';" +
-						"};";
-					view.loadUrl(script);
-				}
 				return true;
 			}
 		});
