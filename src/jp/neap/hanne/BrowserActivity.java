@@ -28,8 +28,6 @@ public class BrowserActivity extends Activity {
 
 	private static final int GREE_TOP_SP = 2;
 
-	private static final int GREE_TOP_PC = 3;
-
 	private static final int GREE_CHANGE_PROFILE = 4;
 
 	private static final int GREE_REQUEST_SETTING = 5;
@@ -81,7 +79,8 @@ public class BrowserActivity extends Activity {
 		webView.getSettings().setSaveFormData(false);
 		webView.getSettings().setSavePassword(false);
 		webView.getSettings().setDatabaseEnabled(false);
-		webView.getSettings().setUserAgentString("Mozilla/5.0 (Linux; U; Android 4.0.4; ja-jp; SH-02E Build/SB140) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30");
+//		webView.getSettings().setUserAgentString("Mozilla/5.0 (Linux; U; Android 4.0.4; ja-jp; SH-02E Build/SB140) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30");
+		webView.getSettings().setUserAgentString("Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/28.0.1500.63 Safari/537.36");
 		
 		if (appType == HandleNameBean.APPTYPE_GREE) {
 			String cookie = CookieManager.getInstance().getCookie("http://gree.jp/");
@@ -120,10 +119,25 @@ public class BrowserActivity extends Activity {
 			}
 
 			private void greeSmartPhone(WebView view, String url, boolean bOnStart) {
-				if (Logger.isDebugEnabled()) {
+				if (Logger.isDebugEnabled() && bOnStart) {
 					Logger.debug("URL=" + url);
 				}
-				if ("http://t.gree.jp/?action=login&ignore_sso=1&backto=".equals(url)) {
+				if ("https://id.gree.net/login/entry?ignore_sso=1&backto=".equals(url)) {
+					if ((actionState == GREE_REQUEST_SETTING) || (actionState == GREE_REQUEST_SETTING_DONE)) {
+						if (bOnStart) {
+							setTitle(getString(R.string.logouted));
+						}
+						else {
+							actionState = GREE_LOGOUT;
+							if (Logger.isDebugEnabled()) {
+								Logger.debug("ログアウトしました");
+							}
+							setTitle(getString(R.string.logouted));
+//							Toast.makeText(getApplicationContext(), R.string.change_handle_name_success, Toast.LENGTH_SHORT).show();
+							finish();
+						}
+						return;
+					}
 					if (actionState == START) {
 						if (bOnStart) {
 							setTitle(getString(R.string.tying_login));
@@ -138,7 +152,7 @@ public class BrowserActivity extends Activity {
 							if ("".equals(password)) {
 								script =
 								"javascript:{" +
-									"document.getElementById('user_mail').value = '" + loginName + "';" +
+									"document.getElementsByName('mail')[0].value = '" + loginName + "';" +
 //									"document.getElementById('login_status').checked = false;" +
 //									"document.getElementById('login_status').disabled = 'disabled';" +
 //									"document.getElementById('login_registration').parentNode.style.display = 'none';" +
@@ -148,15 +162,15 @@ public class BrowserActivity extends Activity {
 //									"document.getElementById('footer-links').style.display = 'none';" +
 									"var divElement = document.createElement('div');" +
 									"divElement.innerHTML = '<font color=red>" + getApplicationContext().getString(R.string.login_usage) + "</font>';" +
-									"document.getElementById('login-form').appendChild(divElement);" +
+									"document.getElementById('login').appendChild(divElement);" +
 								"};";
 							}
 							else {
 								script =
 								"javascript:{" +
-									"document.getElementById('user_mail').value = '" + loginName + "';" +
-									"document.getElementById('user_password_login').value = '" + password + "';" +
-									"document.getElementById('login_login').click();" +
+									"document.getElementsByName('mail')[0].value = '" + loginName + "';" +
+									"document.getElementById('user_password').value = '" + password + "';" +
+									"document.getElementById('login').submit();" +
 								"};";
 							}
 							view.loadUrl(script);
@@ -168,7 +182,7 @@ public class BrowserActivity extends Activity {
 							finish();
 						}
 					}
-				} else if ("http://games.gree.net/".equals(url)) {
+				} else if ("http://jp.product.gree.net/".equals(url)) {
 					if (actionState == GREE_LOGIN) {
 						if (bOnStart) {
 							setTitle(getString(R.string.logined));
@@ -177,26 +191,6 @@ public class BrowserActivity extends Activity {
 							actionState = GREE_TOP_SP;
 							if (Logger.isDebugEnabled()) {
 								Logger.debug("トップ画面(SP)");
-							}
-							setTitle(getString(R.string.logined));
-							view.loadUrl("http://gree.jp/?mode=preference&act=set&fepref=pc");
-						}
-					}
-					else {
-						if (!bOnStart) {
-							Toast.makeText(getApplicationContext(), R.string.change_handle_name_maybe_failed, Toast.LENGTH_SHORT).show();
-							finish();
-						}
-					}
-				} else if ("http://gree.jp/".equals(url)) {
-					if (actionState == GREE_TOP_SP) {
-						if (bOnStart) {
-							setTitle(getString(R.string.logined));
-						}
-						else {
-							actionState = GREE_TOP_PC;
-							if (Logger.isDebugEnabled()) {
-								Logger.debug("トップ画面(PC)");
 							}
 							setTitle(getString(R.string.logined));
 							view.loadUrl("http://gree.jp/?mode=home&act=config_profile_form");
@@ -209,7 +203,7 @@ public class BrowserActivity extends Activity {
 						}
 					}
 				} else if ("http://gree.jp/?mode=home&act=config_profile_form".equals(url)) {
-					if (actionState == GREE_TOP_PC) {
+					if (actionState == GREE_TOP_SP) {
 						if (bOnStart) {
 							setTitle(getString(R.string.changing));
 						}
@@ -339,21 +333,6 @@ public class BrowserActivity extends Activity {
 							finish();
 						}
 					}
-				} else if (url.startsWith("http://games.gree.net/welcome/") && url.contains("logout")) {
-					if ((actionState == GREE_REQUEST_SETTING) || (actionState == GREE_REQUEST_SETTING_DONE)) {
-						if (bOnStart) {
-							setTitle(getString(R.string.logouted));
-						}
-						else {
-							actionState = GREE_LOGOUT;
-							if (Logger.isDebugEnabled()) {
-								Logger.debug("ログアウトしました");
-							}
-							setTitle(getString(R.string.logouted));
-//							Toast.makeText(getApplicationContext(), R.string.change_handle_name_success, Toast.LENGTH_SHORT).show();
-							finish();
-						}
-					}
 				}
 			}
 
@@ -400,7 +379,7 @@ public class BrowserActivity extends Activity {
 		
 		// 最初に開くURL
 		if (appType == HandleNameBean.APPTYPE_GREE) {
-			webView.loadUrl("http://t.gree.jp/?action=login&from_signuptop=login");
+			webView.loadUrl("http://t.gree.jp/");
 		}
 	}
 }
